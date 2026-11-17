@@ -1,0 +1,56 @@
+# COOP NATCCO Partylist - Apache configuration (Apache 2.4)
+# For production, point the virtual host DocumentRoot at this folder and keep
+# config/storage outside it when possible (see docs/DEPLOYMENT.md).
+
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+ServerSignature Off
+AddDefaultCharset UTF-8
+AddType application/manifest+json .webmanifest
+
+# Friendly not-found page. Adjust the path if the app is not installed at /coop-natcco
+ErrorDocument 404 /coop-natcco/404.php
+ErrorDocument 403 /coop-natcco/404.php
+
+# Never serve application internals, data, backups or documentation
+RedirectMatch 404 /(includes|config|storage|database|scripts|tests|docs|build)(/|$)
+<FilesMatch "(^\.|\.(sql|md|log|ini|sh|bak|old|orig|env|dist|lock|enc|gz|zip|phar|phtml|inc)$)">
+    Require all denied
+</FilesMatch>
+<Files "composer.json">
+    Require all denied
+</Files>
+
+<IfModule mod_headers.c>
+    # PHP pages send their own security headers (includes/security.php).
+    # These cover static files so nothing is served without them.
+    Header unset X-Powered-By
+    Header always unset X-Powered-By
+    <FilesMatch "\.(css|js|woff2|png|jpg|jpeg|gif|webp|ico|svg|webmanifest|txt|xml)$">
+        Header set X-Content-Type-Options "nosniff"
+        Header set X-Frame-Options "DENY"
+        Header set Referrer-Policy "strict-origin-when-cross-origin"
+        Header set Cross-Origin-Resource-Policy "same-origin"
+    </FilesMatch>
+    <FilesMatch "\.(css|js|woff2|png|jpg|ico|webmanifest)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+    <Files "sw.js">
+        Header set Cache-Control "no-cache"
+    </Files>
+</IfModule>
+
+<IfModule mod_php.c>
+    php_flag expose_php Off
+    php_flag display_errors Off
+    php_value upload_max_filesize 12M
+    php_value post_max_size 26M
+    php_flag session.use_strict_mode On
+</IfModule>
+
+# Uncomment on a server with a valid TLS certificate to force HTTPS
+# <IfModule mod_rewrite.c>
+#     RewriteEngine On
+#     RewriteCond %{HTTPS} !=on
+#     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# </IfModule>

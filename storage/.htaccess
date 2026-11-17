@@ -1,0 +1,7 @@
+# Uploaded files, logs, sessions and backups are never served directly.
+Require all denied
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+RemoveHandler .php .phtml .php5 .phar
+RemoveType .php .phtml .php5 .phar

@@ -1,0 +1,6 @@
+[2026-11-18 07:02:38] ref=7D16C902 PDOException: SQLSTATE[HY000] [1045] Access denied for user 'root'@'localhost' (using password: NO) in C:\WEB\Php\coop-natcco\includes\db.php:20
+#0 C:\WEB\Php\coop-natcco\includes\db.php(20): PDO->__construct('mysql:host=127....', 'root', '', Array)
+#1 C:\WEB\Php\coop-natcco\includes\db.php(33): db()
+#2 C:\WEB\Php\coop-natcco\includes\db.php(53): q('SELECT * FROM p...', Array)
+#3 C:\WEB\Php\coop-natcco\index.php(10): q_all('SELECT * FROM p...', Array)
+#4 {main}

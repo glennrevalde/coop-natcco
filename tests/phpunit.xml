@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Optional: run the unit tests with PHPUnit 10 or later.
+    phpunit -c tests/phpunit.xml
+  Without PHPUnit, run the same files with:  php tests/run-unit.php
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+         bootstrap="bootstrap.php"
+         colors="true"
+         cacheDirectory="../storage/cache/phpunit">
+    <testsuites>
+        <testsuite name="COOP NATCCO Partylist unit tests">
+            <directory suffix="Test.php">unit</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
