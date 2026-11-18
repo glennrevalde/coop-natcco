@@ -46,6 +46,31 @@ function site_name(): string
     return setting('site_name', 'COOP NATCCO Partylist');
 }
 
+/** Theme and background color of the installed app (PWA): the sidebar color, --blue-900 in base.css. */
+const PWA_THEME_COLOR = '#00015e';
+
+/** Short name for app icons (about 12 characters): the site_short_name setting, or the site name shortened by words. */
+function app_short_name(): string
+{
+    $short = trim((string) setting('site_short_name', ''));
+    if ($short !== '') {
+        return mb_substr($short, 0, 12);
+    }
+    $name = trim(preg_replace('/\s+/', ' ', site_name()));
+    if (mb_strlen($name) <= 12) {
+        return $name;
+    }
+    $out = '';
+    foreach (explode(' ', $name) as $word) {
+        $try = $out === '' ? $word : $out . ' ' . $word;
+        if (mb_strlen($try) > 12) {
+            break;
+        }
+        $out = $try;
+    }
+    return $out !== '' ? $out : mb_substr($name, 0, 12);
+}
+
 function logo_url(): string
 {
     $id = setting_int('logo_media_id', 0);

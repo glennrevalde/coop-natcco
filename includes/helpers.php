@@ -57,10 +57,16 @@ function abs_url(string $path = '', array $params = []): string
     return $root . $rel;
 }
 
+/**
+ * Release number of the CSS, JS and icon files. Raise it with every release that
+ * changes them, so browsers and the app's service worker fetch the new files.
+ */
+const ASSET_VERSION = '1.1.0';
+
 function asset(string $path): string
 {
     $file = APP_ROOT . '/assets/' . ltrim($path, '/');
-    $v = is_file($file) ? (string) filemtime($file) : '1';
+    $v = ASSET_VERSION . (is_file($file) ? '.' . filemtime($file) : '');
     return url('assets/' . ltrim($path, '/')) . '?v=' . $v;
 }
 

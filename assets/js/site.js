@@ -93,8 +93,5 @@
     t.parentNode.appendChild(note);
   });
 
-  /* Register the service worker for installable desktop/mobile use */
-  if ('serviceWorker' in navigator && location.protocol === 'https:') {
-    navigator.serviceWorker.register(base + '/sw.js').catch(function () {});
-  }
+  /* The service worker and the installable app are handled by pwa.js. */
 })();

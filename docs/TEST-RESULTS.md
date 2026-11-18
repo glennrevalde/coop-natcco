@@ -8,8 +8,9 @@ at any time (commands in section 6).
 | Suite | Cases | Passed | Failed | Skipped |
 |---|---|---|---|---|
 | Unit tests (`tests/unit`, UTC-01 to UTC-53) | 53 | 53 | 0 | 0 |
-| Functional end-to-end tests (FT-01 to FT-31) | 31 | 31 | 0 | 0 |
+| Functional end-to-end tests (FT-01 to FT-33) | 33 | 33 | 0 | 0 |
 | Security end-to-end tests (ST-01 to ST-35) | 35 | 35 | 0 | 0 |
+| Installable app checks in Chrome (PWA-01 to PWA-20) | 20 | 20 | 0 | 0 |
 | Role-by-page access crawl (14 roles × 100 admin pages and actions) | 1,400 requests | 1,400 without errors | 0 | 0 |
 | PHP syntax check (`php -l`) | 211 files | 211 | 0 | 0 |
 | MySQL 5.5 compatibility (schema scan, query scan, strict-mode import of both SQL files) | 4 checks | 4 | 0 | 0 |
@@ -138,6 +139,8 @@ in the database where needed.
 | FT-29 | Authentication (MFA) | Enrol an authenticator app and sign in with a second factor | Enrolment shows recovery codes; the next sign-in asks for a code; a reused code is refused; a recovery code works once | Enrolled (8 recovery codes); sign-in asked for a code; replayed TOTP refused; recovery code accepted once and refused the second time | Pass |
 | FT-30 | Backups | The Super Administrator creates and verifies an encrypted backup | A backup record with status "ok" is created and verification succeeds | Backup #1 (completed, encrypted, 336 KB); verification: OK: Decrypted and decompressed successfully (1.3 MB of SQL) | Pass |
 | FT-31 | Audit trail | The audit log hash chain is intact after all the activity above | audit_verify_chain() reports no broken link | 874 entries checked, chain intact | Pass |
+| FT-32 | Installable app | The web app manifest is valid and built from the settings | manifest.php returns JSON with the site name, start_url ./index.php, scope ./, standalone display, the sidebar color, four icons (any and maskable), and no session cookie | Valid manifest for "COOP NATCCO Partylist" (COOP NATCCO), 2 any + 2 maskable icons all reachable, no session cookie | Pass |
+| FT-33 | Installable app | Pages carry the app tags; the service worker and offline page are served correctly | Every layout links manifest.php, the apple-touch-icon and theme-color with the iOS tags and pwa.js; the top bar and sign-in page have the install button; sw.js and offline.html are served with no-cache | Tags present on public, sign-in and admin pages; install button and box present; sw.js and offline.html served (no-cache) | Pass |
 
 ## 4. Security tests (end-to-end)
 
@@ -244,3 +247,45 @@ Two unit-test expectations were corrected in the same way:
 
 - `e()` escapes `'` as `&apos;` (HTML5);
 - `human_size()` rounds kilobytes to whole numbers.
+
+## 8. Installable app (PWA), 18 November 2026
+
+The app files are manifest.php, sw.js, offline.html, assets/icons, assets/js/pwa.js, the install button and the
+install box.
+
+They were checked in headless Chrome 153, against Apache with the sample data on `http://127.0.0.1` (a
+localhost address).
+
+- **Phones and other browsers.** iPhone, Android and Edge were tested by emulating their user agents and
+  screen sizes.
+- **Installed app.** Chrome cannot emulate `display-mode: standalone`, so `matchMedia`, or `navigator.standalone`
+  on iPhone, was made to report the installed state. The CSS `@media (display-mode: …)` rule was confirmed as
+  loaded.
+- **Plain-http address.** This was tested by opening the site as `http://cnpl.test:8081`, a non-local hostname
+  mapped to the same server.
+
+After these changes, the unit tests (53 of 53), the full end-to-end suite (68 of 68, including the new FT-32 and
+FT-33) and the role crawl were run again. All passed.
+
+| ID | Description | Expected result | Actual result | Result |
+|---|---|---|---|---|
+| PWA-01 | Chrome reads the manifest, the service worker registers on localhost, and the page is installable | Manifest parsed with no errors; SW scope is the app folder; no installability errors | manifest manifest.php errors=[]; SW scope=/coop-natcco/; installability errors=[] | Pass |
+| PWA-02 | The sign-in page shows the "Install the app" box in a normal browser tab | Box visible | visible=True | Pass |
+| PWA-03 | Signing in (a POST form) works while the service worker controls the page | Signed in and on the dashboard | controlled by SW=True; landed on admin/index.php | Pass |
+| PWA-04 | The top bar shows the "Install app" button | Visible with the text Install app | visible=True, text="Install app" | Pass |
+| PWA-05 | Without a browser prompt, the button shows the install steps for the browser in use | Dialog opens with the Chrome steps first | dialog open; main steps=['chrome'] | Pass |
+| PWA-06 | When the browser offers the install (beforeinstallprompt), the button opens the browser prompt | prompt() called; steps dialog not shown | prompt called=True; steps dialog open=False | Pass |
+| PWA-07 | The cache holds only files under assets/ plus offline.html, never pages | No .php address and nothing outside assets/ in Cache Storage | 23 cached entries in ['cnpl-assets-1.1.0']; outside assets: []; pages: [] | Pass |
+| PWA-08 | A CSV export downloads normally while the service worker is active | File downloaded with its header row | downloaded cooperatives-20261118-205328.csv; first line: "Reference no.","Cooperative name","CDA registration no.",Ty | Pass |
+| PWA-09 | Without a connection, opening a page shows the offline page at the same address | "No internet connection" with a Try again button | shown: True; address kept: True | Pass |
+| PWA-10 | "Try again" reloads the same page once the connection is back | The cooperative record opens | page heading: "Pag-asa San Juan Multi-Purpose Cooperative" | Pass |
+| PWA-11 | Public pages are not available offline either (no page is ever stored) | Offline page instead of the home page | offline page shown for index.php | Pass |
+| PWA-12 | Inside the installed app (display-mode standalone) the Install button and the sign-in box are hidden | Both hidden; the CSS display-mode rule is also loaded | top bar button hidden=True; sign-in box hidden=True; CSS rule: @media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui), (display-mode: window-controls-overlay) | Pass |
+| PWA-13 | Opened from the iPhone Home Screen (navigator.standalone), the sign-in page has no install box | Install box hidden | install box hidden=True | Pass |
+| PWA-14 | On iPhone the button explains Share > Add to Home Screen | iOS steps first, mentioning Share and Add to Home Screen | main steps=['ios'] | Pass |
+| PWA-15 | On a phone the top bar keeps an icon-only Install button | Button visible; label kept for screen readers | visible=True; accessible text="Install app" | Pass |
+| PWA-16 | On Android Chrome without a prompt, the menu steps are shown | Android Chrome steps first | main steps=['android-chrome'] | Pass |
+| PWA-17 | In Microsoft Edge the Edge steps are shown | Edge steps first | main steps=['edge'] | Pass |
+| PWA-18 | On plain http from another address, no service worker is registered and the dialog explains https/localhost | No registration; "Installing needs a secure address" shown first | secure context=False; service workers=not available; main steps=['insecure', 'chrome'] | Pass |
+| PWA-19 | The public website registers the same service worker and has no console or CSP errors | SW ready, no errors | scope=/coop-natcco/; console errors=[] | Pass |
+| PWA-20 | No console errors or CSP violations on the tested admin and sign-in pages (network errors while deliberately offline excluded) | None | errors=[] | Pass |

@@ -182,9 +182,95 @@ function icon(string $name): string
         'phone' => 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2',
         'arrow' => 'M5 12h14M13 6l6 6-6 6',
         'download' => 'M12 4v11M7 10l5 5 5-5M5 20h14',
+        'install' => 'M8 2.5h8a2 2 0 0 1 2 2v15a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-15a2 2 0 0 1 2-2zM12 6.5v7M9 10.5l3 3 3-3M10.5 18.5h3',
     ];
     $d = $paths[$name] ?? $paths['doc'];
     return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="' . $d . '"/></svg>';
+}
+
+// ------------------------------------------------------------ installable app (PWA)
+/** Manifest, icons, theme color and iOS tags for every page head. */
+function pwa_head(): string
+{
+    $short = app_short_name();
+    return '<link rel="manifest" href="' . e(url('manifest.php')) . '">'
+        . '<link rel="icon" type="image/png" sizes="32x32" href="' . e(asset('icons/favicon-32.png')) . '">'
+        . '<link rel="apple-touch-icon" sizes="180x180" href="' . e(asset('icons/apple-touch-icon.png')) . '">'
+        . '<meta name="theme-color" content="' . PWA_THEME_COLOR . '">'
+        . '<meta name="application-name" content="' . e($short) . '">'
+        . '<meta name="mobile-web-app-capable" content="yes">'
+        . '<meta name="apple-mobile-web-app-capable" content="yes">'
+        . '<meta name="apple-mobile-web-app-title" content="' . e($short) . '">'
+        . '<meta name="apple-mobile-web-app-status-bar-style" content="default">';
+}
+
+/** "Install app" button. Hidden by CSS and pwa.js inside the installed app. */
+function pwa_install_button(string $class, string $label = 'Install app'): string
+{
+    return '<button type="button" class="' . e($class) . '" data-pwa-install aria-haspopup="dialog" aria-controls="pwaDialog">'
+        . icon('install') . '<span class="pwa-label">' . e($label) . '</span></button>';
+}
+
+/** Install instructions for browsers that do not offer the install prompt themselves. */
+function pwa_install_dialog(): string
+{
+    $name = site_name();
+    $steps = [
+        'insecure' => ['Installing needs a secure address', [
+            'Browsers offer installation only on <strong>https://</strong> addresses, or on <strong>http://localhost</strong> on the computer that runs the system.',
+            'This page was opened over plain http from another device, so the install is not available here.',
+            'Ask your administrator for the https address of the system, open it, and try again.']],
+        'ios' => ['iPhone and iPad', [
+            'Tap the <strong>Share</strong> button (the square with an arrow) in the browser toolbar.',
+            'Scroll down and tap <strong>Add to Home Screen</strong>.',
+            'Tap <strong>Add</strong>. The app icon appears on your Home Screen.']],
+        'android-chrome' => ['Chrome on Android', [
+            'Tap the <strong>⋮</strong> menu at the top right.',
+            'Tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.',
+            'Tap <strong>Install</strong>.']],
+        'android-samsung' => ['Samsung Internet', [
+            'Tap the <strong>install icon</strong> in the address bar if it is shown, or tap the <strong>≡</strong> menu.',
+            'Tap <strong>Add page to</strong>, then <strong>Home screen</strong>.',
+            'Tap <strong>Add</strong>.']],
+        'android-firefox' => ['Firefox on Android', [
+            'Tap the <strong>⋮</strong> menu.',
+            'Tap <strong>Add to Home screen</strong> (or <strong>Add app to Home screen</strong>).',
+            'Tap <strong>Add</strong>.']],
+        'chrome' => ['Chrome on a computer', [
+            'Click the <strong>install icon</strong> at the right end of the address bar (a screen with a down arrow).',
+            'Or open the <strong>⋮</strong> menu, then <strong>Cast, save, and share</strong>, then <strong>Install page as app</strong>.',
+            'Click <strong>Install</strong>. The app opens in its own window and is added to your Start menu, Dock or app launcher.']],
+        'edge' => ['Microsoft Edge', [
+            'Click the <strong>App available</strong> icon in the address bar.',
+            'Or open the <strong>…</strong> menu, then <strong>Apps</strong>, then <strong>Install this site as an app</strong>.',
+            'Click <strong>Install</strong>.']],
+        'safari-mac' => ['Safari on a Mac', [
+            'Open the <strong>File</strong> menu (or the <strong>Share</strong> button).',
+            'Choose <strong>Add to Dock</strong>.',
+            'Click <strong>Add</strong>. Needs macOS Sonoma or later.']],
+        'firefox' => ['Firefox on a computer', [
+            'Firefox on Windows, Mac and Linux does not install sites as apps.',
+            'Open this page in <strong>Chrome</strong> or <strong>Edge</strong> and use <strong>Install app</strong> there.']],
+        'other' => ['Other browsers', [
+            'Open the browser menu.',
+            'Look for <strong>Install app</strong>, <strong>Add to Home screen</strong> or <strong>Add to Dock</strong>.']],
+    ];
+    $html = '<dialog class="pwa-dialog" id="pwaDialog" aria-labelledby="pwaTitle"><div class="pwa-dialog-body"><div class="pwa-dialog-head">'
+        . '<img src="' . e(asset('icons/icon-192.png')) . '" alt="" width="56" height="56">'
+        . '<div><h2 id="pwaTitle">Install the app</h2><p>Open ' . e($name) . ' from an icon on your phone or computer, full screen and without the browser address bar.</p></div></div>'
+        . '<p class="pwa-installed-note" hidden>The app is installed. Open it from your Home Screen, Start menu, Dock or app launcher.</p>'
+        . '<div class="pwa-steps">';
+    foreach ($steps as $key => [$title, $list]) {
+        $html .= '<section class="pwa-step" data-pwa-steps="' . $key . '" hidden><h3>' . e($title) . '</h3><ol>';
+        foreach ($list as $li) {
+            $html .= '<li>' . $li . '</li>';
+        }
+        $html .= '</ol></section>';
+    }
+    $html .= '</div><details class="pwa-more"><summary>Steps for other browsers</summary><div class="pwa-more-list"></div></details>'
+        . '<p class="pwa-note">The app shows the same live system. Nothing is stored on the device except the design files, so you still need an internet connection.</p>'
+        . '<form method="dialog" class="btn-row"><button class="btn btn-primary" value="close">Close</button></form></div></dialog>';
+    return $html;
 }
 
 function admin_start(string $title, array $crumbs = [], array $opts = []): void
@@ -198,7 +284,7 @@ function admin_start(string $title, array $crumbs = [], array $opts = []): void
     echo '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
         . '<title>' . e($title) . ' | ' . e(site_name()) . ' Admin</title><meta name="robots" content="noindex, nofollow">'
         . '<meta name="csrf-token" content="' . e(csrf_token()) . '"><meta name="base-url" content="' . e(base_path()) . '">'
-        . '<link rel="icon" href="' . e(asset('img/favicon.ico')) . '"><link rel="manifest" href="' . e(url('manifest.webmanifest')) . '"><meta name="theme-color" content="#00018f">'
+        . pwa_head()
         . '<link rel="preload" href="' . e(asset('fonts/public-sans-latin-400-normal.woff2')) . '" as="font" type="font/woff2" crossorigin>'
         . '<link rel="stylesheet" href="' . e(asset('css/admin.css')) . '"></head><body class="admin">';
     echo '<a class="skip-link" href="#main">Skip to main content</a>';
@@ -231,7 +317,7 @@ function admin_start(string $title, array $crumbs = [], array $opts = []): void
     } else {
         echo '<span class="crumbs"></span>';
     }
-    echo '<div class="tb-right"><a class="tb-bell" href="' . e(url('admin/notifications.php')) . '" aria-label="Notifications' . ($unread ? ', ' . $unread . ' unread' : '') . '">' . icon('bell') . ($unread ? '<span class="tb-dot">' . ($unread > 99 ? '99+' : $unread) . '</span>' : '') . '</a>';
+    echo '<div class="tb-right">' . pwa_install_button('tb-install') . '<a class="tb-bell" href="' . e(url('admin/notifications.php')) . '" aria-label="Notifications' . ($unread ? ', ' . $unread . ' unread' : '') . '">' . icon('bell') . ($unread ? '<span class="tb-dot">' . ($unread > 99 ? '99+' : $unread) . '</span>' : '') . '</a>';
     if ($u) {
         echo '<details class="tb-user"><summary><span class="avatar" aria-hidden="true">' . e(mb_strtoupper(mb_substr($u['full_name'], 0, 1))) . '</span><span class="tb-user-text"><strong>' . e($u['full_name']) . '</strong><span>' . e($roleLabel) . '</span></span></summary>'
             . '<div class="tb-menu-pop"><p class="muted small">Data scope: ' . e(scope_description()) . '</p><a href="' . e(url('account/profile.php')) . '">My account and security</a><a href="' . e(url('admin/notifications.php')) . '">Notifications</a>'
@@ -256,7 +342,8 @@ function admin_end(): void
     echo '<dialog class="confirm-dialog" id="confirmDialog" aria-labelledby="confirmTitle"><form method="dialog"><h2 id="confirmTitle">Please confirm</h2><p id="confirmText"></p>'
         . '<div class="cd-remarks" hidden><label for="confirmRemarks">Remarks</label><input type="text" id="confirmRemarks" maxlength="255"></div>'
         . '<div class="btn-row"><button class="btn btn-ghost" value="cancel">Cancel</button><button class="btn btn-primary" value="ok" id="confirmOk">Continue</button></div></form></dialog>';
-    echo '<script src="' . e(asset('js/admin.js')) . '" defer></script></body></html>';
+    echo pwa_install_dialog();
+    echo '<script src="' . e(asset('js/admin.js')) . '" defer></script><script src="' . e(asset('js/pwa.js')) . '" defer></script></body></html>';
 }
 
 // ------------------------------------------------------------- public site
@@ -294,7 +381,7 @@ function public_start(string $title, array $opts = []): void
         . '<meta property="og:title" content="' . e($full) . '"><meta property="og:description" content="' . e(excerpt($desc, 160)) . '"><meta property="og:type" content="website">'
         . (!empty($opts['image']) ? '<meta property="og:image" content="' . e(abs_url(ltrim(substr($opts['image'], strlen(base_path())), '/'))) . '">' : '')
         . '<meta name="base-url" content="' . e(base_path()) . '">'
-        . '<link rel="icon" href="' . e(asset('img/favicon.ico')) . '"><link rel="apple-touch-icon" href="' . e(asset('img/icon-192.png')) . '"><link rel="manifest" href="' . e(url('manifest.webmanifest')) . '"><meta name="theme-color" content="#00018f">'
+        . pwa_head()
         . '<link rel="preload" href="' . e(asset('fonts/public-sans-latin-400-normal.woff2')) . '" as="font" type="font/woff2" crossorigin>'
         . '<link rel="preload" href="' . e(asset('fonts/barlow-semi-condensed-latin-700-normal.woff2')) . '" as="font" type="font/woff2" crossorigin>'
         . '<link rel="stylesheet" href="' . e(asset('css/site.css')) . '"></head><body class="site' . ($isHome ? ' is-home' : '') . '">';
@@ -376,7 +463,7 @@ function public_end(): void
         echo '<li><a href="' . e(menu_href($f['url'])) . '">' . e($f['label']) . '</a></li>';
     }
     echo '</ul></div></div><div class="wrap foot-bottom"><p>&copy; ' . date('Y') . ' ' . e(site_name()) . '. ' . e(setting('footer_note', 'All rights reserved.')) . '</p></div></footer>';
-    echo '<script src="' . e(asset('js/site.js')) . '" defer></script></body></html>';
+    echo '<script src="' . e(asset('js/site.js')) . '" defer></script><script src="' . e(asset('js/pwa.js')) . '" defer></script></body></html>';
 }
 
 // ------------------------------------------------------------ sign-in pages
@@ -386,7 +473,7 @@ function auth_start(string $title, bool $wide = false): void
     echo '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
         . '<title>' . e($title) . ' | ' . e(site_name()) . '</title><meta name="robots" content="noindex">'
         . '<meta name="csrf-token" content="' . e(csrf_token()) . '"><meta name="base-url" content="' . e(base_path()) . '">'
-        . '<link rel="icon" href="' . e(asset('img/favicon.ico')) . '"><meta name="theme-color" content="#00018f">'
+        . pwa_head()
         . '<link rel="stylesheet" href="' . e(asset('css/admin.css')) . '"></head><body class="auth">';
     echo '<main id="main"><div class="auth-card' . ($wide ? ' wide' : '') . '"><div class="auth-head"><a href="' . e(url('index.php')) . '"><img src="' . e(logo_url()) . '" alt="' . e(site_name()) . ' home" width="96" height="56"></a>'
         . '<div><strong>National Database Management System</strong><span>Authorized users only</span></div></div><div class="auth-body">';
@@ -395,5 +482,6 @@ function auth_start(string $title, bool $wide = false): void
 function auth_end(): void
 {
     echo '</div></div><p class="auth-foot"><a href="' . e(url('index.php')) . '">Back to the public website</a></p></main>';
-    echo '<script src="' . e(asset('vendor/qrcode.js')) . '" defer></script><script src="' . e(asset('js/admin.js')) . '" defer></script></body></html>';
+    echo pwa_install_dialog();
+    echo '<script src="' . e(asset('vendor/qrcode.js')) . '" defer></script><script src="' . e(asset('js/admin.js')) . '" defer></script><script src="' . e(asset('js/pwa.js')) . '" defer></script></body></html>';
 }

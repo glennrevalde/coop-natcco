@@ -38,4 +38,9 @@ auth_start('Sign in');
     <button class="btn btn-primary" type="submit">Sign in</button>
 </form>
 <div class="auth-links"><a href="<?= e(url('account/forgot-password.php')) ?>">Forgot your password?</a><a href="<?= e(url('helpdesk.php')) ?>">Need help?</a></div>
+<div class="install-box" data-pwa-box>
+    <img src="<?= e(asset('icons/icon-192.png')) ?>" alt="" width="46" height="46">
+    <div class="ib-text"><strong>Install the app</strong><span>Open the system from an icon on your phone or computer, full screen.</span></div>
+    <?= pwa_install_button('btn btn-secondary ib-btn', 'Install') ?>
+</div>
 <?php auth_end();

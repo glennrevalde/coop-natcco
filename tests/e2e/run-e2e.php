@@ -529,6 +529,43 @@ tc('FT-31', 'Audit trail', 'The audit log hash chain is intact after all the act
     return "{$checked} entries checked, chain intact";
 });
 
+tc('FT-32', 'Installable app', 'The web app manifest is valid and built from the settings', 'manifest.php returns JSON with the site name, start_url ./index.php, scope ./, standalone display, the sidebar color, four icons (any and maskable), and no session cookie', function () {
+    $c = client();
+    $r = $c->get('manifest.php');
+    $j = json_decode($r->body, true);
+    must($r->status === 200 && strpos((string) $r->header('content-type'), 'application/manifest+json') === 0, 'status/type ' . $r->status . ' ' . $r->header('content-type'));
+    must(is_array($j), 'not valid JSON');
+    must($j['name'] === setting('site_name', 'COOP NATCCO Partylist') && $j['start_url'] === './index.php' && $j['scope'] === './' && $j['display'] === 'standalone', 'fields: ' . json_encode([$j['name'], $j['start_url'], $j['scope'], $j['display']]));
+    must($j['theme_color'] === PWA_THEME_COLOR && $j['background_color'] === PWA_THEME_COLOR, 'colors ' . $j['theme_color'] . '/' . $j['background_color']);
+    $purposes = array_count_values(array_column($j['icons'], 'purpose'));
+    must(($purposes['any'] ?? 0) === 2 && ($purposes['maskable'] ?? 0) === 2, 'icons ' . json_encode($purposes));
+    foreach ($j['icons'] as $i) {
+        must($c->get($i['src'])->status === 200, 'icon missing: ' . $i['src']);
+    }
+    must($c->cookie('CNPLSESS') === null, 'manifest opened a session');
+    return "Valid manifest for \"{$j['name']}\" ({$j['short_name']}), 2 any + 2 maskable icons all reachable, no session cookie";
+});
+
+tc('FT-33', 'Installable app', 'Pages carry the app tags; the service worker and offline page are served correctly', 'Every layout links manifest.php, the apple-touch-icon and theme-color with the iOS tags and pwa.js; the top bar and sign-in page have the install button; sw.js and offline.html are served with no-cache', function () {
+    $c = client();
+    $need = ['rel="manifest" href="' . base_path() . '/manifest.php"', 'rel="apple-touch-icon" sizes="180x180"', '<meta name="theme-color" content="' . PWA_THEME_COLOR . '">',
+        'apple-mobile-web-app-capable', 'apple-mobile-web-app-title', 'js/pwa.js'];
+    $pages = ['public' => $c->get(''), 'sign-in' => $c->get('account/login.php')];
+    $pages['admin'] = as_user('auditor.demo')->get('admin/index.php');
+    foreach ($pages as $k => $r) {
+        foreach ($need as $n) {
+            must(strpos($r->body, $n) !== false, "{$k} page lacks {$n}");
+        }
+    }
+    must(strpos($pages['sign-in']->body, 'data-pwa-box') !== false && strpos($pages['sign-in']->body, 'data-pwa-install') !== false, 'sign-in install box missing');
+    must(preg_match('#<header class="topbar">.*?data-pwa-install.*?</header>#s', $pages['admin']->body) === 1, 'top bar install button missing');
+    $sw = $c->get('sw.js');
+    $off = $c->get('offline.html');
+    must($sw->status === 200 && stripos((string) $sw->header('cache-control'), 'no-cache') !== false, 'sw.js ' . $sw->status . ' ' . $sw->header('cache-control'));
+    must($off->status === 200 && $off->has('No internet connection') && $off->has('Try again'), 'offline.html ' . $off->status);
+    return 'Tags present on public, sign-in and admin pages; install button and box present; sw.js and offline.html served (no-cache)';
+});
+
 // =====================================================================
 // SECURITY TESTS
 // =====================================================================

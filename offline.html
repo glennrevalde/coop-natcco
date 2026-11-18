@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#00015e">
+<title>No internet connection</title>
+<!-- Shown by the app's service worker (sw.js) when a page cannot be loaded.
+     Self-contained on purpose: it is displayed at whatever address failed to load,
+     so it must not depend on other files. -->
+<style>
+  :root { --blue-950: #00013d; --blue-900: #00015e; --blue-800: #00018f; --yellow: #eef007; --yellow-edge: #b4b600; --red: #ff3200; --maroon: #a1203f; --ink: #1b1f3a; --muted: #5b6080; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; display: flex; align-items: center; justify-content: center; padding: 24px 18px calc(24px + env(safe-area-inset-bottom));
+    font-family: "Public Sans", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; color: var(--ink);
+    background: radial-gradient(120% 80% at 50% 0%, var(--blue-800) 0%, var(--blue-900) 55%, var(--blue-950) 100%); }
+  .card { width: 100%; max-width: 420px; background: #fff; border-radius: 18px; padding: 30px 26px 26px; text-align: center;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .6) inset, 0 18px 40px -12px rgba(0, 0, 0, .55), 0 4px 0 #c9cde6; position: relative; overflow: hidden; }
+  .card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 5px;
+    background: linear-gradient(90deg, var(--yellow) 0 46%, #ff8a00 46% 64%, var(--red) 64% 84%, var(--maroon) 84% 100%); }
+  .mark { width: 76px; height: 76px; display: block; margin: 4px auto 18px; filter: drop-shadow(0 6px 10px rgba(0, 1, 61, .35)); }
+  h1 { font-family: "Barlow Semi Condensed", "Arial Narrow", "Segoe UI", system-ui, sans-serif; font-weight: 700; font-size: 1.7rem; line-height: 1.15; margin: 0 0 10px; color: var(--blue-900); }
+  p { margin: 0 0 8px; line-height: 1.55; color: var(--muted); }
+  .btn { margin-top: 18px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; width: 100%; padding: 12px 22px;
+    border: 0; border-radius: 12px; font: inherit; font-weight: 700; font-size: 1rem; cursor: pointer; color: #fff;
+    background: linear-gradient(180deg, #1414a8 0%, var(--blue-800) 100%); box-shadow: 0 1px 0 rgba(255, 255, 255, .25) inset, 0 4px 0 var(--blue-950), 0 10px 18px -8px rgba(0, 1, 61, .7);
+    transition: transform .08s, box-shadow .08s; }
+  .btn:hover { background: linear-gradient(180deg, #1c1cb8 0%, #0a0ba0 100%); }
+  .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(255, 255, 255, .25) inset, 0 1px 0 var(--blue-950); }
+  .btn:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
+  .btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .status { margin-top: 14px; font-size: .9rem; min-height: 1.4em; }
+</style>
+</head>
+<body>
+<main class="card">
+  <svg class="mark" viewBox="0 0 96 96" role="img" aria-label="App icon">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#00018f"/><stop offset="1" stop-color="#00015e"/></linearGradient></defs>
+    <rect width="96" height="96" rx="21" fill="url(#g)"/>
+    <text x="48" y="55" text-anchor="middle" font-family="Barlow Semi Condensed, Arial Narrow, Arial, sans-serif" font-weight="800" font-size="40" fill="#b4b600">CN</text>
+    <text x="48" y="53" text-anchor="middle" font-family="Barlow Semi Condensed, Arial Narrow, Arial, sans-serif" font-weight="800" font-size="40" fill="#eef007">CN</text>
+    <rect x="25" y="61" width="21" height="3" fill="#eef007"/><rect x="46" y="61" width="8" height="3" fill="#ff8a00"/><rect x="54" y="61" width="9" height="3" fill="#ff3200"/><rect x="63" y="61" width="8" height="3" fill="#a1203f"/>
+    <text x="48" y="80" text-anchor="middle" font-family="Barlow Semi Condensed, Arial Narrow, Arial, sans-serif" font-weight="800" font-size="14" letter-spacing="3" fill="#ff3200">PL</text>
+  </svg>
+  <h1>No internet connection</h1>
+  <p>Check your Wi-Fi or mobile data, then try again.</p>
+  <p>Pages are not saved on this device, so the system needs a connection to show your records.</p>
+  <button class="btn" type="button" id="retry">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"/></svg>
+    Try again
+  </button>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+</main>
+<script>
+  (function () {
+    var status = document.getElementById('status');
+    function retry() {
+      status.textContent = 'Trying again…';
+      window.location.reload();
+    }
+    document.getElementById('retry').addEventListener('click', retry);
+    // Reload by itself as soon as the device is back online.
+    window.addEventListener('online', retry);
+  })();
+</script>
+</body>
+</html>

@@ -63,6 +63,11 @@ written to `storage\logs\mail.log` instead of being sent. To send real email, sw
 | CNPL maintenance | `C:\xampp\php\php.exe` | `C:\xampp\htdocs\coop-natcco\scripts\cron.php` |
 | CNPL backup | `C:\xampp\php\php.exe` | `C:\xampp\htdocs\coop-natcco\scripts\backup.php --verify` |
 
+**Installing the system as an app.** Browsers offer installation only on `https://` addresses or on `http://localhost`.
+On the XAMPP computer, open http://localhost/coop-natcco and click **Install app**. Phones and other computers that
+reach XAMPP by its IP address (for example `http://192.168.1.10/coop-natcco`) see the install steps but cannot install
+until the site has HTTPS. Production (part B) uses HTTPS, so installation works there on every device.
+
 **If you install under a different folder name**, change `base_url` and `app_url` in `config/config.php`, and the
 two `ErrorDocument` lines in `.htaccess`.
 

@@ -104,9 +104,12 @@ if (!IS_CLI) {
         exit;
     }
     send_security_headers();
-    session_boot();
-    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !defined('SKIP_CSRF')) {
-        csrf_enforce();
+    // CNPL_STATELESS: public resources such as manifest.php need no session or sign-in.
+    if (!defined('CNPL_STATELESS')) {
+        session_boot();
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !defined('SKIP_CSRF')) {
+            csrf_enforce();
+        }
+        auth_boot();
     }
-    auth_boot();
 }

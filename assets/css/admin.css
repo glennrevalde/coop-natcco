@@ -320,3 +320,59 @@ body.auth { min-height: 100vh; display: grid; place-items: center; padding: 24px
   .kpi .kpi-num { font-size: 1.7rem; }
   .kpi .kpi-foot { font-size: .74rem; }
 }
+
+/* ---------------------------------------------------------------- Installable app (PWA) */
+.tb-install { display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 0 13px 0 10px; border-radius: 10px; cursor: pointer;
+  font: 600 .88rem/1 var(--font); color: var(--blue-800); background: linear-gradient(180deg, #fff 0%, var(--blue-50) 100%); border: 1px solid var(--line-strong);
+  box-shadow: inset 0 1px 0 #fff, 0 2px 0 var(--line-strong), 0 4px 10px -7px rgba(0, 1, 61, .35); transition: transform .12s ease, box-shadow .12s ease; }
+.tb-install:hover { transform: translateY(-1px); border-color: var(--blue-200); box-shadow: inset 0 1px 0 #fff, 0 3px 0 var(--blue-200), 0 8px 14px -8px rgba(0, 1, 143, .4); }
+.tb-install:active { transform: translateY(2px); box-shadow: inset 0 1px 0 #fff, 0 0 0 var(--line-strong); }
+.tb-install .icon { width: 19px; height: 19px; flex: none; }
+@media (max-width: 600px) {
+  .tb-install { padding: 0 9px; min-height: 36px; }
+  .tb-install .pwa-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+
+.install-box { display: flex; align-items: center; gap: 12px; margin-top: 20px; padding: 13px 14px; border-radius: 14px; border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--surface-2) 0%, var(--blue-50) 100%); box-shadow: inset 0 1px 0 #fff, 0 2px 0 var(--line); }
+.install-box img { width: 46px; height: 46px; border-radius: 11px; flex: none; box-shadow: 0 3px 8px -3px rgba(0, 1, 61, .5); }
+.install-box .ib-text { flex: 1; min-width: 0; line-height: 1.3; }
+.install-box .ib-text strong { display: block; color: var(--blue-900); font-size: .95rem; }
+.install-box .ib-text span { display: block; color: var(--ink-3); font-size: .82rem; margin-top: 2px; }
+.auth-body .install-box .btn { width: auto; flex: none; min-height: 38px; padding: 0 14px; gap: 6px; }
+.install-box .btn .icon { width: 17px; height: 17px; }
+@media (max-width: 480px) {
+  .install-box { flex-wrap: wrap; }
+  .install-box .ib-text { flex: 1 1 calc(100% - 60px); }
+  .auth-body .install-box .btn { width: 100%; }
+}
+
+.pwa-dialog { border: 0; border-radius: 18px; padding: 0; max-width: 520px; width: calc(100% - 28px); max-height: calc(100vh - 32px); overflow: auto; color: var(--ink);
+  box-shadow: 0 30px 60px -20px rgba(0, 1, 61, .6); }
+.pwa-dialog::backdrop { background: rgba(0, 1, 40, .55); }
+.pwa-dialog-body { padding: 22px 22px 20px; border-top: 5px solid var(--yellow); border-image: var(--stripe) 1; }
+.pwa-dialog-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+.pwa-dialog-head img { width: 56px; height: 56px; border-radius: 13px; flex: none; box-shadow: 0 4px 10px -4px rgba(0, 1, 61, .55); }
+.pwa-dialog h2 { font-size: 1.35rem; color: var(--blue-900); margin: 2px 0 4px; }
+.pwa-dialog-head p { margin: 0; color: var(--ink-2); font-size: .92rem; line-height: 1.45; }
+.pwa-installed-note { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: var(--ok-bg); color: var(--ok); font-weight: 600; font-size: .9rem; }
+.pwa-step h3 { font-family: var(--font-head); font-size: 1.05rem; color: var(--blue-900); margin: 0 0 8px; }
+.pwa-step ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+.pwa-step li { line-height: 1.45; font-size: .93rem; }
+.pwa-step strong { color: var(--blue-900); }
+.pwa-step-main { padding: 14px 16px; border-radius: 12px; background: var(--blue-50); border: 1px solid var(--blue-100); box-shadow: inset 0 1px 0 #fff; margin-bottom: 10px; }
+.pwa-step-main[data-pwa-steps="insecure"] { background: var(--warn-bg); border-color: #f0dca8; }
+.pwa-step-main[data-pwa-steps="insecure"] h3 { color: var(--warn); }
+.pwa-more { margin-top: 6px; border-top: 1px solid var(--line); padding-top: 10px; }
+.pwa-more summary { cursor: pointer; font-weight: 600; color: var(--blue-800); font-size: .9rem; padding: 4px 0; }
+.pwa-more-list { display: grid; gap: 14px; margin-top: 10px; }
+.pwa-more-list .pwa-step { padding: 0 0 12px; border-bottom: 1px dashed var(--line); }
+.pwa-more-list .pwa-step:last-child { border-bottom: 0; padding-bottom: 0; }
+.pwa-note { margin: 14px 0 0; color: var(--ink-3); font-size: .84rem; line-height: 1.45; }
+.pwa-dialog .btn-row { justify-content: flex-end; margin-top: 16px; }
+
+/* Inside the installed app, no install buttons */
+.pwa-standalone [data-pwa-install], .pwa-standalone [data-pwa-box] { display: none !important; }
+@media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui), (display-mode: window-controls-overlay) {
+  [data-pwa-install], [data-pwa-box] { display: none !important; }
+}
